@@ -1,0 +1,19 @@
+#!/bin/bash
+date=$(date +%d)
+echo $date
+
+echo -e "<!DOCTYPE html>
+<html>
+<body style=\"background-color:black;\">">>temp/index.html
+
+for (( i = 1; i <= $date; i++ )) 
+do
+  echo -e "<video width=\"640\" height=\"480\" controls poster=\"sad.jpg\">\n<source src=\"Bill/$i.mp4\" type=\"video/mp4\">\n</video>\n" >> temp/index.html
+done
+
+echo -e "</body>
+</html>">>temp/index.html
+
+scp temp/index.html Developmers:/home/ubuntu/
+ssh Developmers "sudo systemctl restart nginx"
+rm temp/index.html

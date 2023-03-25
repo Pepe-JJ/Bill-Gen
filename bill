@@ -1,0 +1,214 @@
+#!/bin/bash
+
+#Customize these lines for a handcrafted bill
+#109 147 156 166
+
+cd /home/pi/Bill
+pwd
+
+# packages=( convert curl ffmpeg )
+
+# function checker() {
+# package=$(which "$1")
+# echo $package | grep -v -o "$1" > /dev/null &&  return 0 || return 1
+# }
+
+# for i in "${packages[@]}"
+# do
+# if checker $i == 0 ; then echo "sudo apt install imagemagick ffmpeg curl" && exit ; fi
+# done
+
+set -a # automatically export all variables
+source .env
+set +a
+
+# echo $email
+# echo $password
+# echo $telegram_bot
+
+jeremiahm(){
+token=$(curl -m 5 --retry 5 --retry-max-time 15 -s --cookie-jar "discord-cookies" "https://discord.com/api/v9/auth/login" \
+  -H 'authority: discord.com' \
+  -H 'pragma: no-cache' \
+  -H 'cache-control: no-cache' \
+  -H 'sec-ch-ua: " Not;A Brand";v="99", "Google Chrome";v="97", "Chromium";v="97"' \
+  -H 'x-debug-options: bugReporterEnabled' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'authorization: undefined' \
+  -H 'content-type: application/json' \
+  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36' \
+  -H 'x-discord-locale: es-ES' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'accept: */*' \
+  -H 'origin: https://discord.com' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'referer: https://discord.com/login' \
+  -H 'accept-language: es-419,es;q=0.9' \
+  --data-raw '{"login":"'"$email"'","password":"'"$password"'","undelete":false,"captcha_key":null,"login_source":null,"gift_code_sku_id":null}' \
+  --compressed | grep -o -P '(?<=\"token\"\: \").*(?=\", \"user)')
+
+jeremiah=$(curl -m 5 --retry 5 --retry-max-time 15 -s --cookie "discord-cookies" "https://discord.com/api/v9/channels/$discord_conversation_id/messages" \
+  -H 'authority: discord.com' \
+  -H 'pragma: no-cache' \
+  -H 'cache-control: no-cache' \
+  -H 'x-kl-ajax-request: Ajax_Request' \
+  -H 'x-debug-options: bugReporterEnabled' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H "authorization: $token" \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundaryJu84BBp1js5BW5vE' \
+  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36' \
+  -H 'x-discord-locale: en-US' \
+  -H 'sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="98", "Google Chrome";v="98"' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'accept: */*' \
+  -H 'origin: https://discord.com' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'accept-language: es-419,es;q=0.9,en;q=0.8' \
+  -F "content=Today\'s Bill" -F "nonce=" -F "files[0]=@temp/bill.mp4" \
+  --compressed )
+
+#echo $token
+#echo $jeremiah
+}
+
+bill(){
+    #nlines=$(cat Script | wc -l)
+    nparagraphs=$(grep -E '^$' Script | wc -l)
+
+    #n=$(($RANDOM % $nlines + 1)) && i=$(($RANDOM % 10 + 1)) && j=$((n+i))
+    n=$(($RANDOM % $nparagraphs + 1))
+
+    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f Fender.flf && cat ascii-art.txt) 
+    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'ANSI Regular.flf' && cat ascii-art.txt) 
+    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f Doh && cat ascii-art.txt) 
+
+    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat bill-150.txt)
+    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat ascii-art.txt)
+    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat 'bill ex.txt')
+
+
+    #Pick random bill from list
+    tbills=$(ls temp/AsciiBills/*| wc -l)
+    billslist=$(ls -d temp/AsciiBills/*)
+    rbill=$(($RANDOM % $tbills + 1))
+    echo "Random bill: $rbill" >> bill.log
+
+    cbill=$(echo "$billslist" | sed "${rbill}q;d")
+    echo "Chosen bill: $cbill" >> bill.log
+
+    #Go to N line, and get j lines after
+    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat $cbill)
+
+    #Get N paragraph
+    bill=$(cat Script | awk -v RS= -v p="$n" 'NR == p' | toilet -w 300 -f 'DOS Rebel' && cat $cbill)
+    # bill=$(echo -e "It's the happiest he's been\nin a long time." | toilet -w 300 -f 'DOS Rebel' && cat temp/AsciiBills/vlcsnap-00222-ascii-art.txt)
+
+    #echo "Quote line n: $n"
+    #echo "Number of lines i: $i"
+    echo "Paragraph n: $n" >> bill.log
+    echo -e "\n" >> bill.log
+    echo "$bill" >> bill.log
+    echo "$bill" | convert -background black -fill white -font DejaVu-Sans-Mono-Bold -trim label:@- temp/bill.png
+    song
+    video
+}
+
+get(){
+    response=$(curl -X POST -s https://api.telegram.org/bot$telegram_bot/getUpdates?offset=-1 | jq .result[-1].message.text | cut -d'"' -f 2)
+    echo "Response: $response" # >> bill.log
+    # echo "si$n"
+    while [[ "$response" != "si$n" ]]
+    do
+        if [[ "$response" == "no$n" ]]; then
+            echo "No me gusta"  >> bill.log
+            echo -e "-----------------------------------------\n\n\n" >> bill.log
+            send
+            sleep 10
+            get
+        else
+            sleep 10
+            get
+        fi
+    done
+}
+
+send(){
+    bill
+    #curl -s -F "chat_id=635079513" -F photo=@temp/bill.png https://api.telegram.org/bot$telegram_bot/sendphoto >> /dev/null
+    curl -s -F "chat_id=635079513" -F video=@temp/bill.mp4 https://api.telegram.org/bot$telegram_bot/sendvideo >> /dev/null
+    curl -X POST -s -H 'Content-Type: application/json' -d '{"chat_id": "635079513", "text": "'"$n"'", "disable_notification": false}' https://api.telegram.org/bot$telegram_bot/sendMessage --output /dev/null
+}
+
+duration=15
+
+song(){
+    songslist=$(ls -d temp/songs/*)
+    tsongs=$(ls temp/songs/* | wc -l)
+    rsong=$(($RANDOM % $tsongs + 1))
+    echo "Random song: $rsong" >> bill.log
+
+    csong=$(echo "$songslist" | sed "${rsong}q;d")
+    # csong="temp/songs/Amour_plastique.mp3"
+    echo "Chosen song: $csong" >> bill.log
+
+    totalduration=$(ffmpeg -i $csong 2>&1 | grep Duration | grep -o -P '(?<=Duration: ).*(?=, s)' | cut -c 1-8 | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }')
+    echo "Total duration: $totalduration" >> bill.log
+
+    fixedduration=$(($totalduration-$duration))
+    echo "Fixed duration: $fixedduration" >> bill.log
+
+    start=$(($RANDOM % $fixedduration + 1))
+    # start=15
+    echo "Song start/name: $start" >> bill.log
+
+    ffmpeg -y -loglevel error -ss $start -t $duration -i $csong temp/$start.mp3
+}
+
+video(){
+    ffmpeg -y -loglevel error -ss 0 -loop 1 -i temp/bill.png -i temp/$start.mp3 -t $duration -c:v libx264 -tune stillimage -c:a aac -b:a 192k -vf "scale='iw-mod(iw,2)':'ih-mod(ih,2)',format=yuv420p" -shortest -movflags +faststart temp/bill.mp4
+
+    rm temp/$start.mp3
+    rm temp/bill.png
+}
+
+developmers(){
+    echo "Entered developmers function" >> bill.log
+    # bash developmers-html
+
+    date=$(date +"%Oe"| sed 's/ //')
+    echo $date >> bill.log
+
+    month=$(date +%B)
+    echo "$month" >> bill.log
+
+    # while read p; do
+    # mkdir --parents temp/$p
+    # # touch ../BillSite/Bill-videos/$p/.gitkeep
+    # done < months
+
+    mv temp/bill.mp4 temp/Videos/$month/$date.mp4
+
+    scp temp/Videos/$month/$date.mp4 Developmers:/home/ubuntu/BillSite/Bill-videos/$month/$date.mp4
+    ssh Developmers "sudo systemctl restart nginx"
+}
+
+
+#telegram mode{
+#  send
+#  get
+#  echo "Me gusta" >> bill.log
+#  echo -e "-----------------------------------------\n\n\n" >> bill.log
+#}
+
+#jeremiahm
+
+#automatic mode{
+bill
+echo -e "-----------------------------------------\n\n\n" >> bill.log
+#}
+
+developmers
