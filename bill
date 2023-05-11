@@ -22,58 +22,8 @@ set -a # automatically export all variables
 source .env
 set +a
 
-# echo $email
-# echo $password
 # echo $telegram_bot
 
-jeremiahm(){
-token=$(curl -m 5 --retry 5 --retry-max-time 15 -s --cookie-jar "discord-cookies" "https://discord.com/api/v9/auth/login" \
-  -H 'authority: discord.com' \
-  -H 'pragma: no-cache' \
-  -H 'cache-control: no-cache' \
-  -H 'sec-ch-ua: " Not;A Brand";v="99", "Google Chrome";v="97", "Chromium";v="97"' \
-  -H 'x-debug-options: bugReporterEnabled' \
-  -H 'sec-ch-ua-mobile: ?0' \
-  -H 'authorization: undefined' \
-  -H 'content-type: application/json' \
-  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36' \
-  -H 'x-discord-locale: es-ES' \
-  -H 'sec-ch-ua-platform: "Windows"' \
-  -H 'accept: */*' \
-  -H 'origin: https://discord.com' \
-  -H 'sec-fetch-site: same-origin' \
-  -H 'sec-fetch-mode: cors' \
-  -H 'sec-fetch-dest: empty' \
-  -H 'referer: https://discord.com/login' \
-  -H 'accept-language: es-419,es;q=0.9' \
-  --data-raw '{"login":"'"$email"'","password":"'"$password"'","undelete":false,"captcha_key":null,"login_source":null,"gift_code_sku_id":null}' \
-  --compressed | grep -o -P '(?<=\"token\"\: \").*(?=\", \"user)')
-
-jeremiah=$(curl -m 5 --retry 5 --retry-max-time 15 -s --cookie "discord-cookies" "https://discord.com/api/v9/channels/$discord_conversation_id/messages" \
-  -H 'authority: discord.com' \
-  -H 'pragma: no-cache' \
-  -H 'cache-control: no-cache' \
-  -H 'x-kl-ajax-request: Ajax_Request' \
-  -H 'x-debug-options: bugReporterEnabled' \
-  -H 'sec-ch-ua-mobile: ?0' \
-  -H "authorization: $token" \
-  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundaryJu84BBp1js5BW5vE' \
-  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36' \
-  -H 'x-discord-locale: en-US' \
-  -H 'sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="98", "Google Chrome";v="98"' \
-  -H 'sec-ch-ua-platform: "Windows"' \
-  -H 'accept: */*' \
-  -H 'origin: https://discord.com' \
-  -H 'sec-fetch-site: same-origin' \
-  -H 'sec-fetch-mode: cors' \
-  -H 'sec-fetch-dest: empty' \
-  -H 'accept-language: es-419,es;q=0.9,en;q=0.8' \
-  -F "content=Today\'s Bill" -F "nonce=" -F "files[0]=@temp/bill.mp4" \
-  --compressed )
-
-#echo $token
-#echo $jeremiah
-}
 
 bill(){
     #nlines=$(cat Script | wc -l)
@@ -169,7 +119,9 @@ song(){
 }
 
 video(){
-    ffmpeg -y -loglevel error -ss 0 -loop 1 -i temp/bill.png -i temp/$start.mp3 -t $duration -c:v libx264 -tune stillimage -c:a aac -b:a 192k -vf "scale='iw-mod(iw,2)':'ih-mod(ih,2)',format=yuv420p" -shortest -movflags +faststart temp/bill.mp4
+    ffmpeg -y -loglevel error -ss 0 -loop 1 -i temp/bill.png -i temp/$start.mp3 -t $duration -c:v libx264 -profile:v main -level:v 4.0 -tune stillimage -vf "scale='iw-mod(iw,2)':'ih-mod(ih,2)',format=yuv420p,scale=-2:1080" -c:a aac -b:a 192k -movflags +faststart temp/bill.mp4
+
+    
 
     rm temp/$start.mp3
     rm temp/bill.png
@@ -203,8 +155,6 @@ developmers(){
 #  echo "Me gusta" >> bill.log
 #  echo -e "-----------------------------------------\n\n\n" >> bill.log
 #}
-
-#jeremiahm
 
 #automatic mode{
 bill
