@@ -1,81 +1,107 @@
 #!/bin/bash
 
-#Customize these lines for a handcrafted bill
-#109 147 156 166
-
-cd /home/pi/Bill
+cd /home/pi/Bill-Gen
 pwd
-
-# packages=( convert curl ffmpeg )
-
-# function checker() {
-# package=$(which "$1")
-# echo $package | grep -v -o "$1" > /dev/null &&  return 0 || return 1
-# }
-
-# for i in "${packages[@]}"
-# do
-# if checker $i == 0 ; then echo "sudo apt install imagemagick ffmpeg curl" && exit ; fi
-# done
 
 set -a # automatically export all variables
 source .env
 set +a
 
-# echo $telegram_bot
+export PATH="$path"
+packages=( convert curl ffmpeg wkhtmltoimage cowsay figlet toilet ascii-image-converter)
 
+function checker() {
+    package=$( which "$1" )
+    echo $package | grep -v -o "$1" > /dev/null &&  return 0 || return 1
+}
+
+for i in "${packages[@]}"; do
+    if checker "$i"; then
+        echo "sudo apt install imagemagick ffmpeg curl && https://pypi.org/project/ansi2html/  https://github.com/danielgatis/rembg https://charc0al.github.io/cowsay-files/converter/"
+        exit
+    fi
+done
 
 bill(){
-    #nlines=$(cat Script | wc -l)
-    nparagraphs=$(grep -E '^$' Script | wc -l)
+    cowsay "choosing bill"
 
-    #n=$(($RANDOM % $nlines + 1)) && i=$(($RANDOM % 10 + 1)) && j=$((n+i))
-    n=$(($RANDOM % $nparagraphs + 1))
+    randomText=$(find media/texts -type f -print0 | shuf -zn1 | xargs -0 ls -d)
+    echo "Text file: $randomText"
+    nparagraphs=$(awk '/^$/{n++}; END {print n+1}' $randomText) #Get number of paragraphs in the text file
+    echo "Number of paragraphs: $nparagraphs"
 
-    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f Fender.flf && cat ascii-art.txt) 
-    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'ANSI Regular.flf' && cat ascii-art.txt) 
-    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f Doh && cat ascii-art.txt) 
+    rparagraph=$(($RANDOM % $nparagraphs + 1)) #Get a random number betwen 1 and $nparagraphs
+    echo "Number of paragraph chosen: $rparagraph"
 
-    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat bill-150.txt)
-    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat ascii-art.txt)
-    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat 'bill ex.txt')
+    #Pick a paragraph 
+    paragraph=$(cat $randomText | awk -v RS= -v p="$rparagraph" 'NR == p' | iconv -f utf8 -t ascii//TRANSLIT//IGNORE)  #Get n paragraph and remove accents
+    echo "Paragraph: $paragraph"
+    
+    #V1
+    # bill=$(echo "$paragraph" | toilet -w 300 -f 'DOS Rebel' && cat $cbill)
+    # bill=$(echo -e "Wait a minute.\nHe's not going to die here...\nbut he doesn't die here." | stoilet -w 300 -f 'DOS Rebel' && cat media/art/AsciiBills/og-ascii-art.txt)    
+    
+    #V2
+    randomArt=$(find media/art -type f -print0 | shuf -zn1 | xargs -0 ls -d)
+    echo "art chosen: $randomArt"
+
+    #If my file its a cow
+    if [[ "${randomArt##*.}" == "cow" ]]; then
+        echo "File is 🐄"
+        #Get width of the printed cow
+        width=$(cowsay -f ./${randomArt} "deleteme.png" | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g' | wc -L)
+        
+        # echo cowsay
+        # cowsay -f ./${randomArt}
+        
+        art=$(cowsay -f ./${randomArt} "deleteme.png" | sed '1,3d')
+    else
+        echo "File is txt"
+        # exit
+        width=$(cat $randomArt | wc -L)
+        art=$(cat $randomArt)
+    fi
+
+    echo width: $width
+    # echo "$art"
+    # exit
+
+    echo "width: $width" >> bil.log
+    if [ "$width" -lt 200 ]; then
+        echo "width is less than 200"
+        width=175
+    fi
 
 
-    #Pick random bill from list
-    tbills=$(ls temp/AsciiBills/*| wc -l)
-    billslist=$(ls -d temp/AsciiBills/*)
-    rbill=$(($RANDOM % $tbills + 1))
-    echo "Random bill: $rbill" >> bill.log
+    #Print a centered text that fits to the width and the cowfile removing the text globe (cows had their thoughts (\) removed from before)
+    # bill="$(echo "$paragraph" | figlet -c -w $width -f 'DOS Rebel' | toilet -w $width -f term && echo "$art")"
+    bill="$(echo "$paragraph" | figlet -c -w $width -f 'DOS Rebel' && echo "$art")"
+    # echo "$bill"
+    # exit
+    
+    # echo "$bill" | convert -background black -fill white -font DejaVu-Sans-Mono-Bold -trim label:@- media/temp/bill.png
 
-    cbill=$(echo "$billslist" | sed "${rbill}q;d")
-    echo "Chosen bill: $cbill" >> bill.log
-
-    #Go to N line, and get j lines after
-    #bill=$(sed -n -e "${n},${j}p" Script | toilet -w 300 -f 'DOS Rebel' && cat $cbill)
-
-    #Get N paragraph
-    bill=$(cat Script | awk -v RS= -v p="$n" 'NR == p' | toilet -w 300 -f 'DOS Rebel' && cat $cbill)
-    # bill=$(echo -e "It's the happiest he's been\nin a long time." | toilet -w 300 -f 'DOS Rebel' && cat temp/AsciiBills/vlcsnap-00222-ascii-art.txt)
-
-    #echo "Quote line n: $n"
-    #echo "Number of lines i: $i"
-    echo "Paragraph n: $n" >> bill.log
-    echo -e "\n" >> bill.log
-    echo "$bill" >> bill.log
-    echo "$bill" | convert -background black -fill white -font DejaVu-Sans-Mono-Bold -trim label:@- temp/bill.png
+    echo "$bill" | ansi2html | wkhtmltoimage --quality 50 - - | convert - -trim media/temp/bill.png
+    
+    
+    # exit
+    
     song
+    # exit
     video
+
+    echo "$bill"
 }
 
 get(){
     response=$(curl -X POST -s https://api.telegram.org/bot$telegram_bot/getUpdates?offset=-1 | jq .result[-1].message.text | cut -d'"' -f 2)
-    echo "Response: $response" # >> bill.log
+    echo "Response: $response"
     # echo "si$n"
-    while [[ "$response" != "si$n" ]]
+    while [[ "$response" != "si$rparagraph" ]]
     do
-        if [[ "$response" == "no$n" ]]; then
-            echo "No me gusta"  >> bill.log
-            echo -e "-----------------------------------------\n\n\n" >> bill.log
+        if [[ "$response" == "no$rparagraph" ]]; then
+            echo "No me gusta" 
+            echo -e "-----------------------------------------\n\n\n"
             send
             sleep 10
             get
@@ -88,77 +114,78 @@ get(){
 
 send(){
     bill
-    #curl -s -F "chat_id=635079513" -F photo=@temp/bill.png https://api.telegram.org/bot$telegram_bot/sendphoto >> /dev/null
-    curl -s -F "chat_id=635079513" -F video=@temp/bill.mp4 https://api.telegram.org/bot$telegram_bot/sendvideo >> /dev/null
-    curl -X POST -s -H 'Content-Type: application/json' -d '{"chat_id": "635079513", "text": "'"$n"'", "disable_notification": false}' https://api.telegram.org/bot$telegram_bot/sendMessage --output /dev/null
+    #curl -s -F "chat_id=635079513" -F photo=@media/temp/bill.png https://api.telegram.org/bot$telegram_bot/sendphoto >> /dev/null
+    curl -s -F "chat_id=635079513" -F video=@media/temp/bill.mp4 https://api.telegram.org/bot$telegram_bot/sendvideo >> /dev/null
+    curl -X POST -s -H 'Content-Type: application/json' -d '{"chat_id": "635079513", "text": "'"$rparagraph"'", "disable_notification": false}' https://api.telegram.org/bot$telegram_bot/sendMessage --output /dev/null
 }
 
 duration=15
 
 song(){
-    songslist=$(ls -d temp/songs/*)
-    tsongs=$(ls temp/songs/* | wc -l)
+    cowsay "choosing song"
+
+    songslist=$(ls -d media/songs/*)
+    tsongs=$(ls media/songs/* | wc -l)
     rsong=$(($RANDOM % $tsongs + 1))
-    echo "Random song: $rsong" >> bill.log
+    echo "Random song: $rsong"
 
     csong=$(echo "$songslist" | sed "${rsong}q;d")
-    # csong="temp/songs/Amour_plastique.mp3"
-    echo "Chosen song: $csong" >> bill.log
+    # csong="media/songs/Bad Takes Only - White Pill Come Again.mp3"
+    echo "Chosen song: $csong"
 
-    totalduration=$(ffmpeg -i $csong 2>&1 | grep Duration | grep -o -P '(?<=Duration: ).*(?=, s)' | cut -c 1-8 | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }')
-    echo "Total duration: $totalduration" >> bill.log
+    totalduration=$(ffmpeg -i "$csong" 2>&1 | grep Duration | grep -o -P '(?<=Duration: ).*(?=, s)' | cut -c 1-8 | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }')
+    echo "Total duration: $totalduration"
 
     fixedduration=$(($totalduration-$duration))
-    echo "Fixed duration: $fixedduration" >> bill.log
+    echo "Fixed duration: $fixedduration"
 
     start=$(($RANDOM % $fixedduration + 1))
-    # start=15
-    echo "Song start/name: $start" >> bill.log
+    # start=28
+    echo "Song start/name: $start"
 
-    ffmpeg -y -loglevel error -ss $start -t $duration -i $csong temp/$start.mp3
+    ffmpeg -y -loglevel error -ss $start -t $duration -i "$csong" media/temp/$start.mp3
 }
 
 video(){
-    ffmpeg -y -loglevel error -ss 0 -loop 1 -i temp/bill.png -i temp/$start.mp3 -t $duration -c:v libx264 -profile:v main -level:v 4.0 -tune stillimage -vf "scale='iw-mod(iw,2)':'ih-mod(ih,2)',format=yuv420p,scale=-2:1080" -c:a aac -b:a 192k -movflags +faststart temp/bill.mp4
+    cowsay "generating video"
 
-    
+    # ffmpeg -y -loglevel error -ss 0 -loop 1 -i media/temp/bill.png -i media/temp/$start.mp3 -t $duration -c:v libx264 -tune stillimage -c:a aac -b:a 192k -vf "scale='iw-mod(iw,2)':'ih-mod(ih,2)',format=yuv420p" -shortest -movflags +faststart media/temp/bill.mp4
+    ffmpeg -y -loglevel error -ss 0 -loop 1 -i media/temp/bill.png -i media/temp/$start.mp3 -t $duration -c:v libx264 -profile:v main -level:v 4.0 -tune stillimage -vf "scale='iw-mod(iw,2)':'ih-mod(ih,2)',format=yuv420p,scale=-2:1080" -c:a aac -b:a 192k -movflags +faststart media/temp/bill.mp4
 
-    rm temp/$start.mp3
-    rm temp/bill.png
+
+    rm media/temp/$start.mp3
+    # rm media/temp/bill.png
 }
 
 developmers(){
-    echo "Entered developmers function" >> bill.log
+    cowsay "uploading video"
+
     # bash developmers-html
 
     date=$(date +"%Oe"| sed 's/ //')
-    echo $date >> bill.log
+    echo Date: $date
 
     month=$(date +%B)
-    echo "$month" >> bill.log
+    echo "$month"
 
-    # while read p; do
-    # mkdir --parents temp/$p
-    # # touch ../BillSite/Bill-videos/$p/.gitkeep
-    # done < months
+    mv media/temp/bill.mp4 media/Videos/$month/$date.mp4
 
-    mv temp/bill.mp4 temp/Videos/$month/$date.mp4
-
-    scp temp/Videos/$month/$date.mp4 Developmers:/home/ubuntu/BillSite/Bill-videos/$month/$date.mp4
+    scp media/Videos/$month/$date.mp4 Developmers:/home/ubuntu/BillSite/Bill-videos/$month/$date.mp4
     ssh Developmers "sudo systemctl restart nginx"
 }
 
 
-#telegram mode{
+#Telegram mode{
 #  send
 #  get
-#  echo "Me gusta" >> bill.log
-#  echo -e "-----------------------------------------\n\n\n" >> bill.log
+#  echo "Me gusta"
+#  echo -e "-----------------------------------------\n\n\n"
 #}
 
-#automatic mode{
+
+#Automatic mode{
 bill
-echo -e "-----------------------------------------\n\n\n" >> bill.log
+# echo -e "-----------------------------------------\n\n\n"
 #}
 
 developmers

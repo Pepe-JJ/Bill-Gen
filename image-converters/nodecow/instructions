@@ -1,0 +1,10 @@
+#This converter only wokrs in x86_64 distros
+#Create folder ~/image-converters in host
+
+sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev 
+npm install canvas
+
+node app.js $input
+node app-truecolor.js $input
+
+#Scale makes it look more pixelated, its harcoded to 2

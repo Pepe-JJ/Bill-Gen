@@ -1,0 +1,29 @@
+#This converter only wokrs in x86_64 distros
+#Create folders ~/background-removers/images/ ~/background-removers/output/ ~/background-removers/correct/ in host
+mkdir -p images
+mkdir -p output
+mkdir -p correct
+
+sudo apt-get update && sudo apt-get install ffmpeg libsm6 libxext6  -y
+pip3 install rembg
+#if that doesnt work
+pip3 uninstall rembg
+
+python3.8 -m pip install numpy==1.23.5
+python3.8 -m pip install scipy scikit-image
+python3.8 -m pip install rembg
+#-m stands for model, there are six models "u2net" "u2netp" "u2net_human_seg" "u2net_cloth_seg" "silueta" "isnet-general-use"
+rembg i -m "$input" "~/rembg/source/$filename_ext" "~/rembg/output/$filename-$i.png"
+
+#Locate binary to use it through ssh "command"
+which rembg
+
+pip install transparent-background --no-cache-dir
+transparent-background --source $input --jit --dest ../output
+
+which transparent-background
+
+#Input files to images
+#Run bash test-exmaples.sh
+#It'll wait for user input, you'll have to move images from background-removers/output to correct
+#Then press any key

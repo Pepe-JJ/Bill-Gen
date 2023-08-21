@@ -1,0 +1,3 @@
+Put images in image-source-examples
+run test-examples.sh
+move good images from transparent-background/output to correct

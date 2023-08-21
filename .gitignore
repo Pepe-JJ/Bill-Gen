@@ -1,5 +1,6 @@
 *.mp3
 *.mp4
 *.log
-temp/songs/.spdlcache
 bill.log
+media/fonts/*
+media/art/cows/*
