@@ -1,8 +1,8 @@
 #This converter only wokrs in x86_64 distros
-#Create folders ~/background-removers/images/ ~/background-removers/output/ ~/background-removers/correct/ in host
-mkdir -p images
-mkdir -p output
-mkdir -p correct
+#Create folders ~/background-removers/source/ ~/background-removers/output/ ~/background-removers/correct/ in host
+mkdir -p ~/background-removers/source
+mkdir -p ~/background-removers/output
+mkdir -p ~/background-removers/correct
 
 sudo apt-get update && sudo apt-get install ffmpeg libsm6 libxext6  -y
 pip3 install rembg

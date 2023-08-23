@@ -4,33 +4,9 @@ mkdir -p background-removers/output
 mkdir -p background-removers/correct
 
 cowsay "resize images"
-for file in image-source-examples/*
-do
-    echo $file
-    filename_ext=$(basename "$file")
-    # echo $filename_ext
-    filename="${filename_ext%.*}"
-    # echo $filename
-    
-    if [ ! -f "background-removers/images/${filename}-300.png" ]; then
-        
-        echo Reszing image
-
-        if [[ -f "$file" && "$file" == *" "* ]]; then
-        echo "Renaming $file"
-            new_name="${file// /_}"
-            mv "$file" "$new_name"
-            file="$new_name"
-        fi
-        
-        convert "$file" -resize 300 "background-removers/images/${filename}-300.png"
-
-    else 
-        echo file exists
-    fi
-
-done
-# exit
+cd image-converters/
+bash resizer.sh
+cd ..
 
 cowsay "background removers"
 cd background-removers/
@@ -52,7 +28,7 @@ bash foreachcow.sh
 #delete images in background removers
 cd ../
 pwd
-rm background-removers/images/*
-rm background-removers/output/*
-rm cows-images/output/*
+rm -f background-removers/images/*
+rm -f background-removers/output/*
+rm -f cows-images/output/*
 

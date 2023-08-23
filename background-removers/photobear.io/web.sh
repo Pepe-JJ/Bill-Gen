@@ -1,5 +1,4 @@
 #!/bin/bash
-mkdir -p output
 
 flag=true
 
@@ -7,9 +6,9 @@ while $flag; do
   # Loop over each image file in the ../../images directory
   for input in ../images/*; do
     # Get the filename without the directory path or file extension
-    filename=$(basename "$input")
+    filename="$(basename $input)"
     filename="${filename%.*}"
-    echo $input
+    echo Input: "$input"
     # Run each of the commands using the current input file
 
     if [ ! -f "../output/${filename}_photobear.png" ]; then

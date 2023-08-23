@@ -2,6 +2,8 @@
 
 cowsay "For each cow"
 
+mkdir -p output/
+
 for file in output/*.cow
 do
     echo Cow file: $file
@@ -37,7 +39,7 @@ do
     # Check if the file already exists
     if [ ! -f "output/${filename}-fortune.png" ]; then
         width=$(cowsay -f ./$file "deleteme.png" | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g' | wc -L)
-        echo "$(fortune -s | figlet -c -w $width -f 'DOS Rebel' && cat output/${filename}.ansi)" | ansi2html | wkhtmltoimage --quality 50 - - | convert - -trim "output/${filename}-fortune.png"
+        echo "$(fortune -s | figlet -c -w $width -f 'DOS Rebel' && cowsay -f ./$file deleteme.png | sed '1,3d')" | ansi2html | wkhtmltoimage --quality 50 - - | convert - -trim "output/${filename}-fortune.png"
     fi
 
 done

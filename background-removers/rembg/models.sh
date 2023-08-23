@@ -1,5 +1,4 @@
 #!/bin/bash
-mkdir -p output
 
 # Define the array of values
 array=("u2net" "u2netp" "u2net_human_seg" "u2net_cloth_seg" "silueta" "isnet-general-use")

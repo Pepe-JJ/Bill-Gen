@@ -1,5 +1,4 @@
 #!/bin/bash
-mkdir -p output
 
 # Loop over each image file in the ../../images directory
 for input in ../images/*; do
