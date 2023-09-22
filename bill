@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cd /home/pi/Bill-Gen
+mkdir -p media/temp/
 pwd
 
 set -a # automatically export all variables
