@@ -12,13 +12,20 @@ for file in ../images/*; do
         
     echo Removing background using transparent-background
 
-    scp $file Developmers2:~/background-removers/source/
+    scp "$file" Developmers2:~/background-removers/source/
     # Run each of the commands using the current file
 
     #Outputs as filename_rgba.png
     # ssh Developmers2 '/home/ubuntu/.local/bin/transparent-background --source ~/background-removers/source/"'"$filename_ext"'" --jit --dest ~/background-removers/output'
     ssh Developmers2 '/home/ubuntu/.local/bin/transparent-background --source ~/background-removers/source/"'"$filename_ext"'" --dest ~/background-removers/output'
-    scp Developmers2:"~/background-removers/output/${filename}_rgba.png" ../output/
+    # echo "~/background-removers/output/${filename}_rgba.png"
+    
+    output="~/background-removers/output/${filename}_rgba.png"
+    echo "output: $output"
+    # exit
+
+    scp Developmers2:"$output" ../output/
+    # exit
     # ssh Developmers2 'rm "~/background-removers/source/$filename*" && rm "~/background-removers/output/$filename"'
     ssh Developmers2 'rm ~/background-removers/source/$filename*'
     ssh Developmers2 'ls ~/background-removers/source/'

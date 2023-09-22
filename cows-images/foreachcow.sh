@@ -20,10 +20,10 @@ do
     echo File name: $filename
 
     # Check if the base png file already exists
-    # if [ ! -f "output/${filename}.png" ]; then
-    #     #This actually creates the image itself
-    #     cowsay -f ./$file "deleteme.png" | sed '1,3d' | ansi2html | wkhtmltoimage --quality 50 - - | convert - -resize 720 -trim "output/${filename}.png"
-    # fi
+    if [ ! -f "output/${filename}.png" ]; then
+        #This actually creates the image itself
+        cowsay -f ./$file "deleteme.png" | sed '1,3d' | ansi2html | wkhtmltoimage --quality 50 - - | convert - -resize 720 -trim "output/${filename}.png"
+    fi
 
     # # Check if the ansi file already exists
     # if [ ! -f "output/${filename}.ansi" ]; then

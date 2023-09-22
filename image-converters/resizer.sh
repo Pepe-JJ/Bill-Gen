@@ -6,21 +6,16 @@ do
     filename="${filename_ext%.*}"
     # echo $filename
     
-    if [ ! -f "../background-removers/images/${filename}-300.png" ]; then
-        
-        echo Reszing image
+    # Remove special characters and replace spaces with underscores
+    new_filename=$(echo "$filename" | tr -cd '[:alnum:]_' | tr ' ' '_')
 
-        if [[ -f "$file" && "$file" == *" "* ]]; then
-        echo "Renaming $file"
-            new_name="${file// /_}"
-            mv "$file" "$new_name"
-            file="$new_name"
-        fi
-        
-        convert "$file" -resize 300 "../background-removers/images/${filename}-300.png"
+    if [ ! -f "../background-removers/images/${new_filename}-300.png" ]; then
+        echo Resizing image
 
+        convert "$file" -resize 300 "../background-removers/images/${new_filename}-300.png"
     else 
-        echo file exists
+        echo File exists
     fi
 
 done
+
