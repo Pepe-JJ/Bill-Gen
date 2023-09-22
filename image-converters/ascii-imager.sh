@@ -45,7 +45,7 @@ done
 #Ascii art to generated image
 
 # while read p; do
-#     name=$(basename $p)
+#     name=$(basename "$p")
     
 #     #nlines=$(cat Script | wc -l)
 #     nparagrahps=$(grep -E '^$' Script | wc -l)
